@@ -7,20 +7,22 @@ import (
 )
 
 type Config struct {
-	Title  string `yaml:"title"`
-	Email  string `yaml:"email"`
-	Server struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+	Title                 string `yaml:"title"`
+	Email                 string `yaml:"email"`
+	PasswordToken         string `yaml:"passwordToken"`
+	UrlPageChangePassword string `yaml:"urlPageChangePassword"`
+	Server                struct {
+		Host     string `yaml:"host"`
+		Port     string `yaml:"port"`
+		JWTToken string `yaml:"jwtToken"`
 	}
 	DataBase struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		Name string `yaml:"name"`
+		URI  string `yaml:"uri"`
 	}
 	SendGrid struct {
 		APIKey string `yaml:"apiKey"`
 	}
-	APIKey string `yaml:"key"`
 }
 
 func NewConfig(filename string) (*Config, error) {
@@ -38,8 +40,4 @@ func NewConfig(filename string) (*Config, error) {
 
 func (cfg Config) ServerAddress() string {
 	return cfg.Server.Host + ":" + cfg.Server.Port
-}
-
-func (cfg Config) DataBaseAddress() string {
-	return cfg.DataBase.Host + ":" + cfg.DataBase.Port
 }

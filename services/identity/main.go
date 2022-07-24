@@ -1,18 +1,13 @@
 package main
 
 import (
-	"log"
-
 	"github.com/edmarfelipe/next-u/services/identity/infra"
 	"github.com/edmarfelipe/next-u/services/identity/infra/http"
 )
 
 func main() {
-	config, err := infra.NewConfig("./config.yaml")
-	if err != nil {
-		log.Fatal(err)
-	}
+	ct := infra.NewContainer()
 
-	server := http.SetupHTTPServer()
-	server.Listen(config.ServerAddress())
+	server := http.NewServer(ct)
+	server.Listen()
 }

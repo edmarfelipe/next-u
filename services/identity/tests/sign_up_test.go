@@ -4,32 +4,21 @@ import (
 	"net/http"
 	"testing"
 
-	httpServer "github.com/edmarfelipe/next-u/services/identity/infra/http"
-
-	"github.com/gavv/httpexpect"
+	"github.com/edmarfelipe/next-u/services/identity/infra"
+	"github.com/edmarfelipe/next-u/services/identity/usecases/signup"
 )
 
-func fiberHTTPTester(t *testing.T) *httpexpect.Expect {
-	app := httpServer.SetupHTTPServer()
-
-	return httpexpect.WithConfig(httpexpect.Config{
-		Client: &http.Client{
-			Transport: httpexpect.NewFastBinder(app.Handler()),
-		},
-		Reporter: httpexpect.NewAssertReporter(t),
-	})
-}
-
 func TestSignUpRouter(t *testing.T) {
-	server := fiberHTTPTester(t)
+	server := NewHTTPTester(t, &infra.Container{})
 
-	t.Run("Should not create a user with an empty name", func(t *testing.T) {
-		baseURL := "/users/v1"
-		body := map[string]string{
-			"email": "",
-			"pass":  "",
-			"name":  "",
-			"user":  "",
+	baseURL := "/identity/v1"
+
+	t.Run("Should not create a user with a invalid boyd", func(t *testing.T) {
+		body := signup.Input{
+			Name:     "",
+			Username: "hello",
+			Email:    "hello@google.com",
+			Password: "1234",
 		}
 
 		server.POST(baseURL + "/sign-up").
@@ -37,18 +26,15 @@ func TestSignUpRouter(t *testing.T) {
 			Expect().
 			Status(http.StatusBadRequest).
 			Body().
-			Equal("Bad Request")
+			Equal("Name is required")
 	})
 
 	t.Run("Should create a user with a valid body", func(t *testing.T) {
-		server := fiberHTTPTester(t)
-
-		baseURL := "/users/v1"
-		body := map[string]string{
-			"name":  "Ms. Hello",
-			"user":  "hello",
-			"email": "hello@google.com",
-			"pass":  "1234",
+		body := signup.Input{
+			Name:     "Ms. Hello",
+			Username: "hello",
+			Email:    "hello@google.com",
+			Password: "1234",
 		}
 
 		server.POST(baseURL + "/sign-up").
