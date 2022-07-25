@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/edmarfelipe/next-u/services/identity/entity"
+	"github.com/edmarfelipe/next-u/services/identity/infra/tracer"
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -36,7 +37,10 @@ func (rep *userDB) coll() *qmgo.Collection {
 }
 
 func (rep *userDB) Create(ctx context.Context, model entity.User) error {
-	_, err := rep.coll().InsertOne(ctx, model)
+	childCtx, span := tracer.StartSpan(ctx, "database", "UserDB.Create")
+	defer span.End()
+
+	_, err := rep.coll().InsertOne(childCtx, model)
 	if err != nil {
 		return err
 	}
@@ -45,6 +49,9 @@ func (rep *userDB) Create(ctx context.Context, model entity.User) error {
 }
 
 func (rep *userDB) Update(ctx context.Context, model entity.User) error {
+	childCtx, span := tracer.StartSpan(ctx, "database", "UserDB.Update")
+	defer span.End()
+
 	updated := bson.M{
 		"$set": bson.M{
 			"name":     model.Name,
@@ -55,7 +62,7 @@ func (rep *userDB) Update(ctx context.Context, model entity.User) error {
 		},
 	}
 
-	err := rep.coll().UpdateOne(ctx, bson.M{"_id": model.ID}, updated)
+	err := rep.coll().UpdateOne(childCtx, bson.M{"_id": model.ID}, updated)
 	if err != nil {
 		return err
 	}
@@ -64,21 +71,27 @@ func (rep *userDB) Update(ctx context.Context, model entity.User) error {
 }
 
 func (rep *userDB) FindAll(ctx context.Context) (*[]entity.User, error) {
+	childCtx, span := tracer.StartSpan(ctx, "database", "UserDB.FindAll")
+	defer span.End()
+
 	var result []entity.User
 	rep.coll().
-		Find(ctx, bson.M{}).
+		Find(childCtx, bson.M{}).
 		All(&result)
 
 	return &result, nil
 }
 
 func (rep *userDB) FindOne(ctx context.Context, id string) (*entity.User, error) {
+	childCtx, span := tracer.StartSpan(ctx, "database", "UserDB.FindOne")
+	defer span.End()
+
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
 
-	query := rep.coll().Find(ctx, bson.M{"_id": objectId})
+	query := rep.coll().Find(childCtx, bson.M{"_id": objectId})
 
 	var result entity.User
 	err = query.One(&result)
@@ -91,7 +104,10 @@ func (rep *userDB) FindOne(ctx context.Context, id string) (*entity.User, error)
 }
 
 func (rep *userDB) FindByUsername(ctx context.Context, user string) (*entity.User, error) {
-	query := rep.coll().Find(ctx, bson.M{"username": user})
+	childCtx, span := tracer.StartSpan(ctx, "database", "UserDB.FindByUsername")
+	defer span.End()
+
+	query := rep.coll().Find(childCtx, bson.M{"username": user})
 
 	var result entity.User
 	err := query.One(&result)
@@ -104,8 +120,11 @@ func (rep *userDB) FindByUsername(ctx context.Context, user string) (*entity.Use
 }
 
 func (rep *userDB) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+	childCtx, span := tracer.StartSpan(ctx, "database", "UserDB.FindByEmail")
+	defer span.End()
+
 	query := rep.coll().
-		Find(ctx, bson.M{"email": email})
+		Find(childCtx, bson.M{"email": email})
 
 	var result entity.User
 	err := query.One(&result)

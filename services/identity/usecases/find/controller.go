@@ -17,7 +17,7 @@ type Controller struct {
 
 func (ctrl Controller) Handler(c *fiber.Ctx) error {
 	in := Input{}
-	output, err := ctrl.usecase.Execute(c.Context(), in)
+	output, err := ctrl.usecase.Execute(c.UserContext(), in)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}

@@ -22,7 +22,7 @@ func (ctrl Controller) Handler(c *fiber.Ctx) error {
 		return err
 	}
 
-	err = ctrl.usecase.Execute(c.Context(), input)
+	err = ctrl.usecase.Execute(c.UserContext(), input)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}

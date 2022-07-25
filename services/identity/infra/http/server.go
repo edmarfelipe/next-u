@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/edmarfelipe/next-u/services/identity/infra"
+	"github.com/edmarfelipe/next-u/services/identity/infra/tracer"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/disable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/enable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/find"
@@ -43,7 +44,7 @@ func (srv *Server) registerRouters() {
 	base.Post("/recover-password", srv.adapter(recover.NewController(srv.ct)))
 
 	base.Use(jwt.New(jwt.Config{
-		SigningKey: []byte("secret"),
+		SigningKey: []byte(srv.ct.Config.Server.JWTToken),
 	}))
 
 	base.Get("/", srv.adapter(find.NewController(srv.ct)))
@@ -53,7 +54,12 @@ func (srv *Server) registerRouters() {
 }
 
 func (srv *Server) adapter(ctrl Requester) func(c *fiber.Ctx) error {
-	return ctrl.Handler
+	return func(c *fiber.Ctx) error {
+		ctx, span := tracer.StartSpan(c.Context(), "HTTP", c.Path())
+		defer span.End()
+		c.SetUserContext(ctx)
+		return ctrl.Handler(c)
+	}
 }
 
 // Handler returns the server handler.

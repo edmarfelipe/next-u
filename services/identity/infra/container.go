@@ -6,6 +6,7 @@ import (
 	"github.com/edmarfelipe/next-u/libs/mail"
 	"github.com/edmarfelipe/next-u/libs/passwordhash"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+	"github.com/edmarfelipe/next-u/services/identity/infra/tracer"
 )
 
 type Container struct {
@@ -18,6 +19,11 @@ type Container struct {
 }
 
 func NewContainer() *Container {
+	err := tracer.NewTracer()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	config, err := NewConfig("./config.yaml")
 	if err != nil {
 		log.Fatal(err)

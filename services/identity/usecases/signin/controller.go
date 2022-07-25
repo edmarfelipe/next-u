@@ -27,7 +27,7 @@ func (ctrl Controller) Handler(c *fiber.Ctx) error {
 		return err
 	}
 
-	output, err := ctrl.usecase.Execute(c.Context(), in)
+	output, err := ctrl.usecase.Execute(c.UserContext(), in)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}

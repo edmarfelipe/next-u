@@ -5,7 +5,7 @@ Authentication, Authorization and User Registration
 ## Endpoints
 
 ### Sign Up
-```json
+```
 POST /identity/v1/sign-up
 {
 	"name": "Jon Snow",
@@ -16,7 +16,7 @@ POST /identity/v1/sign-up
 ```
 
 ### Sign In
-```json
+```
 POST /identity/v1/sign-in
 {
 	"username": "jon",
@@ -25,7 +25,7 @@ POST /identity/v1/sign-in
 ```
 
 ### Recovery Password
-```json
+```
 POST /identity/v1/recover-password
 {
 	"email": "jonsnow@mail.com"
@@ -33,7 +33,7 @@ POST /identity/v1/recover-password
 ```
 
 ### Change Password
-```json
+```
 POST /identity/v1/change-password
 {
 	"userName": "jon",
@@ -43,7 +43,7 @@ POST /identity/v1/change-password
 ```
 
 ### Change Password with a token
-```json
+```
 POST /identity/v1/change-password
 {
 	"token": "oldPass",
