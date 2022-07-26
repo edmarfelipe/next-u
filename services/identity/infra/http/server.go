@@ -1,8 +1,9 @@
 package http
 
 import (
+	"log"
+
 	"github.com/edmarfelipe/next-u/services/identity/infra"
-	"github.com/edmarfelipe/next-u/services/identity/infra/tracer"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/disable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/enable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/find"
@@ -11,6 +12,7 @@ import (
 	"github.com/edmarfelipe/next-u/services/identity/usecases/signin"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/signup"
 
+	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
 	jwt "github.com/gofiber/jwt/v3"
 	"github.com/valyala/fasthttp"
@@ -39,6 +41,8 @@ func NewServer(ct *infra.Container) *Server {
 func (srv *Server) registerRouters() {
 	base := srv.fiber.Group("/identity/v1")
 
+	base.Use(otelfiber.Middleware(srv.ct.Config.Server.Host))
+
 	base.Post("/sign-in", srv.adapter(signin.NewController(srv.ct)))
 	base.Post("/sign-up", srv.adapter(signup.NewController(srv.ct)))
 	base.Post("/recover-password", srv.adapter(recover.NewController(srv.ct)))
@@ -54,12 +58,7 @@ func (srv *Server) registerRouters() {
 }
 
 func (srv *Server) adapter(ctrl Requester) func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		ctx, span := tracer.StartSpan(c.Context(), "HTTP", c.Path())
-		defer span.End()
-		c.SetUserContext(ctx)
-		return ctrl.Handler(c)
-	}
+	return ctrl.Handler
 }
 
 // Handler returns the server handler.
@@ -68,5 +67,5 @@ func (srv *Server) Handler() fasthttp.RequestHandler {
 }
 
 func (srv *Server) Listen() {
-	srv.fiber.Listen(srv.ct.Config.ServerAddress())
+	log.Fatal(srv.fiber.Listen(srv.ct.Config.ServerAddress()))
 }

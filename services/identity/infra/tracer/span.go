@@ -15,7 +15,6 @@ import (
 const (
 	service     = "identity"
 	environment = "production"
-	id          = 1
 )
 
 func StartSpan(ctx context.Context, componetName string, spanName string) (context.Context, trace.Span) {
