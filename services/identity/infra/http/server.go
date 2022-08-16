@@ -1,19 +1,23 @@
 package http
 
 import (
-	"log"
+	"context"
+	"fmt"
+	"os"
 
 	"github.com/edmarfelipe/next-u/services/identity/infra"
+	"github.com/edmarfelipe/next-u/services/identity/usecases/authorize"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/disable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/enable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/find"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/password/change"
-	"github.com/edmarfelipe/next-u/services/identity/usecases/password/recover"
-	"github.com/edmarfelipe/next-u/services/identity/usecases/signin"
+	"github.com/edmarfelipe/next-u/services/identity/usecases/password/changewithtoken"
+	"github.com/edmarfelipe/next-u/services/identity/usecases/password/reset"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/signup"
 
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	jwt "github.com/gofiber/jwt/v3"
 	"github.com/valyala/fasthttp"
 )
@@ -38,34 +42,43 @@ func NewServer(ct *infra.Container) *Server {
 	return server
 }
 
-func (srv *Server) registerRouters() {
-	base := srv.fiber.Group("/identity/v1")
+func (s *Server) registerRouters() {
+	base := s.fiber.Group("/identity/v1")
 
-	base.Use(otelfiber.Middleware(srv.ct.Config.Server.Host))
+	base.Use(otelfiber.Middleware(s.ct.Config.Server.Host))
+	base.Use(requestid.New())
 
-	base.Post("/sign-in", srv.adapter(signin.NewController(srv.ct)))
-	base.Post("/sign-up", srv.adapter(signup.NewController(srv.ct)))
-	base.Post("/recover-password", srv.adapter(recover.NewController(srv.ct)))
-
+	base.Post("/authorize", s.adapter(authorize.NewController(s.ct)))
+	base.Post("/signup", s.adapter(signup.NewController(s.ct)))
+	base.Post("/password/reset", s.adapter(reset.NewController(s.ct)))
 	base.Use(jwt.New(jwt.Config{
-		SigningKey: []byte(srv.ct.Config.Server.JWTToken),
+		SigningKey: []byte(s.ct.Config.Server.JWTToken),
 	}))
 
-	base.Get("/", srv.adapter(find.NewController(srv.ct)))
-	base.Post("/change-password", srv.adapter(change.NewController(srv.ct)))
-	base.Patch("/enable/:username", srv.adapter(enable.NewController(srv.ct)))
-	base.Patch("/disable/:username", srv.adapter(disable.NewController(srv.ct)))
+	base.Get("/", s.adapter(find.NewController(s.ct)))
+	base.Post("/password/change", s.adapter(change.NewController(s.ct)))
+	base.Post("/password/change/:token", s.adapter(changewithtoken.NewController(s.ct)))
+	base.Patch("/enable/:id", s.adapter(enable.NewController(s.ct)))
+	base.Patch("/disable/:id", s.adapter(disable.NewController(s.ct)))
 }
 
-func (srv *Server) adapter(ctrl Requester) func(c *fiber.Ctx) error {
-	return ctrl.Handler
+func (s *Server) adapter(ctrl Requester) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		defer func() {
+			s.ct.Logger.Info(c.UserContext(), fmt.Sprintf("%d %s %d - %s %s", os.Getpid(), c.GetRespHeader("X-Request-ID"), c.Response().StatusCode(), c.Method(), c.Path()))
+		}()
+		return ctrl.Handler(c)
+	}
 }
 
 // Handler returns the server handler.
-func (srv *Server) Handler() fasthttp.RequestHandler {
-	return srv.fiber.Handler()
+func (s *Server) Handler() fasthttp.RequestHandler {
+	return s.fiber.Handler()
 }
 
-func (srv *Server) Listen() {
-	log.Fatal(srv.fiber.Listen(srv.ct.Config.ServerAddress()))
+func (s *Server) Listen() {
+	err := s.fiber.Listen(s.ct.Config.ServerAddress())
+	if err != nil {
+		s.ct.Logger.Error(context.Background(), "err", err)
+	}
 }

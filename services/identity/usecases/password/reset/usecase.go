@@ -1,4 +1,4 @@
-package recover
+package reset
 
 import (
 	"context"
@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/edmarfelipe/next-u/libs/logger"
 	"github.com/edmarfelipe/next-u/libs/mail"
-	"github.com/edmarfelipe/next-u/services/identity/entity"
+	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
 )
@@ -25,31 +26,29 @@ type Input struct {
 }
 
 type usecase struct {
-	config          *infra.Config
-	userDB          db.UserDB
-	passwordResetDB db.PasswordResetDB
-	mailService     mail.MailService
-	validator       infra.Validatorer
+	logger      logger.Logger
+	config      *infra.Config
+	userDB      db.UserDB
+	mailService mail.MailService
 }
 
 func NewUsecase(
+	logger logger.Logger,
 	config *infra.Config,
-	userRepository db.UserDB,
-	passwordResetDB db.PasswordResetDB,
+	userDB db.UserDB,
 	mailService mail.MailService,
-	validator infra.Validatorer,
 ) Usecase {
 	return &usecase{
-		config:          config,
-		userDB:          userRepository,
-		passwordResetDB: passwordResetDB,
-		mailService:     mailService,
-		validator:       validator,
+		logger:      logger,
+		config:      config,
+		userDB:      userDB,
+		mailService: mailService,
 	}
 }
 
 func (usc *usecase) Execute(ctx context.Context, in Input) error {
-	err := usc.validator.IsValid(in)
+	usc.logger.Info(ctx, "Recovering password with email: "+in.Email)
+	err := validator.IsValid(in)
 	if err != nil {
 		return err
 	}
@@ -60,6 +59,7 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 	}
 
 	if user == nil {
+		usc.logger.Error(ctx, "Failed to recovery", "err", errUserNotFound)
 		return errUserNotFound
 	}
 
@@ -68,8 +68,8 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 		Email: user.Email,
 	}
 
-	passwordRest := entity.MakePasswordReset(user.ID)
-	err = usc.passwordResetDB.Create(ctx, passwordRest)
+	reset := user.CreatePasswordToken()
+	err = usc.userDB.Update(ctx, *user)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 	changePasswordUrl := strings.ReplaceAll(
 		usc.config.UrlPageChangePassword,
 		"{token}",
-		passwordRest.Token,
+		reset.Token,
 	)
 	subject := usc.config.Title + " - Reset Password"
 	content := fmt.Sprintf(template, usc.config.Title, changePasswordUrl)

@@ -16,7 +16,6 @@ func TestSignUpRouter(t *testing.T) {
 	t.Run("Should not create a user with a invalid boyd", func(t *testing.T) {
 		body := signup.Input{
 			Name:     "",
-			Username: "hello",
 			Email:    "hello@google.com",
 			Password: "1234",
 		}
@@ -32,7 +31,6 @@ func TestSignUpRouter(t *testing.T) {
 	t.Run("Should create a user with a valid body", func(t *testing.T) {
 		body := signup.Input{
 			Name:     "Ms. Hello",
-			Username: "hello",
 			Email:    "hello@google.com",
 			Password: "1234",
 		}

@@ -1,7 +1,10 @@
 go 1.18
 
 use (
+	./libs/logger
 	./libs/mail
 	./libs/passwordhash
+	./libs/tracer
+	./libs/validator
 	./services/identity
 )

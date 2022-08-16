@@ -1,4 +1,4 @@
-package change
+package changewithtoken
 
 import (
 	"github.com/edmarfelipe/next-u/services/identity/infra"
@@ -16,13 +16,16 @@ type Controller struct {
 }
 
 func (ctrl Controller) Handler(c *fiber.Ctx) error {
-	var input Input
-	err := c.BodyParser(&input)
+	in := Input{
+		Token: c.Params("token"),
+	}
+
+	err := c.BodyParser(&in)
 	if err != nil {
 		return err
 	}
 
-	err = ctrl.usecase.Execute(c.UserContext(), input)
+	err = ctrl.usecase.Execute(c.UserContext(), in)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}

@@ -4,48 +4,55 @@ import (
 	"context"
 	"errors"
 
-	"github.com/edmarfelipe/next-u/services/identity/infra"
+	"github.com/edmarfelipe/next-u/libs/logger"
+	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
 )
 
-type usecase struct {
-	userRepository db.UserDB
-	validator      infra.Validatorer
-}
+var (
+	errCouldNotFoundUser = errors.New("could not found user")
+)
 
 type Usecase interface {
 	Execute(ctx context.Context, input Input) error
 }
 
-func NewUsecase(userRepository db.UserDB, validator infra.Validatorer) Usecase {
+type usecase struct {
+	logger logger.Logger
+	userDB db.UserDB
+}
+
+func NewUsecase(logger logger.Logger, userDB db.UserDB) Usecase {
 	return &usecase{
-		userRepository: userRepository,
-		validator:      validator,
+		logger: logger,
+		userDB: userDB,
 	}
 }
 
 type Input struct {
-	Username string `validate:"required"`
+	ID string `validate:"required"`
 }
 
 func (usc *usecase) Execute(ctx context.Context, in Input) error {
-	err := usc.validator.IsValid(in)
+	usc.logger.Info(ctx, "Enabling user "+in.ID)
+
+	err := validator.IsValid(in)
 	if err != nil {
 		return err
 	}
 
-	user, err := usc.userRepository.FindByUsername(ctx, in.Username)
+	user, err := usc.userDB.FindOne(ctx, in.ID)
 	if err != nil {
 		return err
 	}
 
 	if user == nil {
-		return errors.New("could not found user")
+		return errCouldNotFoundUser
 	}
 
 	user.Active = true
 
-	err = usc.userRepository.Update(ctx, *user)
+	err = usc.userDB.Update(ctx, *user)
 	if err != nil {
 		return err
 	}

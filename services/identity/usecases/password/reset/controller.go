@@ -1,4 +1,4 @@
-package recover
+package reset
 
 import (
 	"github.com/edmarfelipe/next-u/services/identity/infra"
@@ -7,7 +7,7 @@ import (
 
 func NewController(ct *infra.Container) Controller {
 	return Controller{
-		usecase: NewUsecase(ct.Config, ct.UserDB, ct.PasswordResetDB, ct.MailService, ct.Validator),
+		usecase: NewUsecase(ct.Logger, ct.Config, ct.UserDB, ct.MailService),
 	}
 }
 

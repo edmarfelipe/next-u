@@ -1,4 +1,4 @@
-package change
+package changewithtoken
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	errUserNotFound     = errors.New("could not found user")
-	errPasswordNotMatch = errors.New("password does not match")
+	errUserNotFoundToken = errors.New("could not found user with this token")
+	errTokenNotFound     = errors.New("token not found")
+	errTokenExpired      = errors.New("token is expired")
 )
 
 type Input struct {
-	Email       string `json:"email" validate:"required"`
-	OldPassword string `json:"oldPassword" validate:"required"`
+	Token       string `json:"-" `
 	NewPassword string `json:"newPassword" validate:"required"`
 }
 
@@ -40,30 +40,41 @@ func NewUsecase(logger logger.Logger, userDB db.UserDB, passwordHash passwordhas
 }
 
 func (usc *usecase) Execute(ctx context.Context, in Input) error {
-	usc.logger.Info(ctx, "Updating password with email: "+in.Email)
+	usc.logger.Info(ctx, "Updating password with token: "+in.Token[:5])
 	err := validator.IsValid(in)
 	if err != nil {
 		return err
 	}
 
-	user, err := usc.userDB.FindByEmail(ctx, in.Email)
+	user, err := usc.userDB.FindByTokenNotDone(ctx, in.Token)
 	if err != nil {
 		return err
 	}
 
 	if user == nil {
-		usc.logger.Error(ctx, "failed to change password", "err", errUserNotFound)
-		return errUserNotFound
+		usc.logger.Error(ctx, "failed to change password", "err", errUserNotFoundToken)
+		return errUserNotFoundToken
 	}
 
-	if !usc.passwordHash.CheckHash(user.Password, in.OldPassword) {
-		return errPasswordNotMatch
+	reset := user.FindNotDoneToken()
+	if reset == nil {
+		usc.logger.Error(ctx, "failed to change password", "err", errTokenNotFound)
+		return errTokenNotFound
 	}
 
-	user.Password, err = usc.passwordHash.Hash(in.NewPassword)
+	if reset.IsExpired() {
+		usc.logger.Error(ctx, "failed to change password", "err", errTokenExpired)
+		return errTokenExpired
+	}
+
+	user.MarkTokenHasDone(reset.Token)
+
+	hashedPassword, err := usc.passwordHash.Hash(in.NewPassword)
 	if err != nil {
 		return err
 	}
+
+	user.Password = hashedPassword
 
 	err = usc.userDB.Update(ctx, *user)
 	if err != nil {

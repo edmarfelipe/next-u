@@ -7,7 +7,6 @@ import (
 
 func main() {
 	ct := infra.NewContainer()
-
 	server := http.NewServer(ct)
 	server.Listen()
 }

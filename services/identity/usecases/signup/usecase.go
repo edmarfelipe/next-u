@@ -4,10 +4,16 @@ import (
 	"context"
 	"errors"
 
+	"github.com/edmarfelipe/next-u/libs/logger"
 	"github.com/edmarfelipe/next-u/libs/passwordhash"
+	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/entity"
-	"github.com/edmarfelipe/next-u/services/identity/infra"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+)
+
+var (
+	errEmailAlreadyInUse = errors.New("email already in use")
+	errUserAlreadyInUse  = errors.New("user already in use")
 )
 
 type Usecase interface {
@@ -15,48 +21,41 @@ type Usecase interface {
 }
 
 type usecase struct {
-	userRepository db.UserDB
-	validator      infra.Validatorer
+	logger         logger.Logger
+	userDB         db.UserDB
 	passwordHasher passwordhash.PasswordHash
 }
 
-func NewUsecase(userRepository db.UserDB, validator infra.Validatorer, passwordHasher passwordhash.PasswordHash) Usecase {
+func NewUsecase(logger logger.Logger, userDB db.UserDB, passwordHasher passwordhash.PasswordHash) Usecase {
 	return &usecase{
-		userRepository: userRepository,
-		validator:      validator,
+		logger:         logger,
+		userDB:         userDB,
 		passwordHasher: passwordHasher,
 	}
 }
 
 type Input struct {
 	Name     string `json:"name" validate:"required"`
-	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 	Email    string `json:"email" validate:"email"`
 }
 
 func (usc *usecase) Execute(ctx context.Context, in Input) error {
-	err := usc.validator.IsValid(in)
+	usc.logger.Info(ctx, "signing up with user: "+in.Email)
+
+	err := validator.IsValid(in)
 	if err != nil {
 		return err
 	}
 
-	existingUser, err := usc.userRepository.FindByEmail(ctx, in.Email)
-	if err != nil {
-		return err
-	}
-
-	if existingUser != nil {
-		return errors.New("email already in use")
-	}
-
-	existingUser, err = usc.userRepository.FindByUsername(ctx, in.Username)
+	existingUser, err := usc.userDB.FindByEmail(ctx, in.Email)
 	if err != nil {
 		return err
 	}
 
 	if existingUser != nil {
-		return errors.New("user already in use")
+		usc.logger.Error(ctx, "failed to signup", "err", errEmailAlreadyInUse)
+		return errEmailAlreadyInUse
 	}
 
 	hashedPassword, err := usc.passwordHasher.Hash(in.Password)
@@ -66,12 +65,11 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 
 	model := entity.MakeUser(
 		in.Name,
-		in.Username,
-		hashedPassword,
 		in.Email,
+		hashedPassword,
 	)
 
-	err = usc.userRepository.Create(ctx, model)
+	err = usc.userDB.Create(ctx, model)
 	if err != nil {
 		return err
 	}

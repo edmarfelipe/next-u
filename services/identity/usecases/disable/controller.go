@@ -7,7 +7,7 @@ import (
 
 func NewController(ct *infra.Container) *Controller {
 	return &Controller{
-		usecase: NewUsecase(ct.UserDB, ct.Validator),
+		usecase: NewUsecase(ct.Logger, ct.UserDB),
 	}
 }
 
@@ -16,11 +16,11 @@ type Controller struct {
 }
 
 func (ctrl Controller) Handler(c *fiber.Ctx) error {
-	input := Input{
-		Username: c.Params("username"),
+	in := Input{
+		ID: c.Params("id"),
 	}
 
-	err := ctrl.usecase.Execute(c.UserContext(), input)
+	err := ctrl.usecase.Execute(c.UserContext(), in)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}

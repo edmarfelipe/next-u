@@ -7,7 +7,7 @@ import (
 
 func NewController(ct *infra.Container) *Controller {
 	return &Controller{
-		usecase: NewUsecase(ct.UserDB, ct.Validator, ct.PasswordHash),
+		usecase: NewUsecase(ct.Logger, ct.UserDB, ct.PasswordHash),
 	}
 }
 

@@ -3,7 +3,8 @@ package disable
 import (
 	"context"
 
-	"github.com/edmarfelipe/next-u/services/identity/infra"
+	"github.com/edmarfelipe/next-u/libs/logger"
+	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
 )
 
@@ -12,28 +13,30 @@ type Usecase interface {
 }
 
 type usecase struct {
-	userDB    db.UserDB
-	validator infra.Validatorer
+	logger logger.Logger
+	userDB db.UserDB
 }
 
-func NewUsecase(userDB db.UserDB, validator infra.Validatorer) Usecase {
+func NewUsecase(logger logger.Logger, userDB db.UserDB) Usecase {
 	return &usecase{
-		userDB:    userDB,
-		validator: validator,
+		logger: logger,
+		userDB: userDB,
 	}
 }
 
 type Input struct {
-	Username string `validate:"required"`
+	ID string `validate:"required"`
 }
 
 func (usc usecase) Execute(ctx context.Context, in Input) error {
-	err := usc.validator.IsValid(in)
+	usc.logger.Info(ctx, "Disabling user "+in.ID)
+
+	err := validator.IsValid(in)
 	if err != nil {
 		return err
 	}
 
-	user, err := usc.userDB.FindByUsername(ctx, in.Username)
+	user, err := usc.userDB.FindOne(ctx, in.ID)
 	if err != nil {
 		return err
 	}

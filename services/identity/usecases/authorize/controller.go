@@ -1,4 +1,4 @@
-package signin
+package authorize
 
 import (
 	"time"
@@ -11,7 +11,7 @@ import (
 func NewController(ct *infra.Container) *Controller {
 	return &Controller{
 		config:  ct.Config,
-		usecase: NewUsecase(ct.UserDB, ct.Validator, ct.PasswordHash),
+		usecase: NewUsecase(ct.Logger, ct.UserDB, ct.PasswordHash),
 	}
 }
 

@@ -1,4 +1,4 @@
-package infra
+package validator
 
 import (
 	"errors"
@@ -7,22 +7,10 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type Validatorer interface {
-	IsValid(interface{}) error
-}
-
-type Validator struct {
-	validate *validator.Validate
-}
-
-func NewValidator() Validatorer {
-	return &Validator{
-		validate: validator.New(),
-	}
-}
-
-func (val *Validator) IsValid(model interface{}) error {
-	err := val.validate.Struct(model)
+// TODO: refact
+func IsValid(model interface{}) error {
+	val := validator.New()
+	err := val.Struct(model)
 	if err == nil {
 		return nil
 	}
