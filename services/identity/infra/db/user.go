@@ -51,7 +51,7 @@ func (rep *userDB) Create(ctx context.Context, model entity.User) error {
 }
 
 func (rep *userDB) Update(ctx context.Context, model entity.User) error {
-	rep.logger.Info(ctx, "Updating user "+model.ID.String())
+	rep.logger.Info(ctx, "Updating user "+model.ID.Hex())
 
 	updated := bson.M{
 		"$set": bson.M{

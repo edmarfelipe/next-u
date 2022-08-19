@@ -2,8 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
-	"os"
 
 	"github.com/edmarfelipe/next-u/services/identity/infra"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/authorize"
@@ -45,8 +43,8 @@ func NewServer(ct *infra.Container) *Server {
 func (s *Server) registerRouters() {
 	base := s.fiber.Group("/identity/v1")
 
-	base.Use(otelfiber.Middleware(s.ct.Config.Server.Host))
 	base.Use(requestid.New())
+	base.Use(otelfiber.Middleware(s.ct.Config.Server.Host))
 
 	base.Post("/authorize", s.adapter(authorize.NewController(s.ct)))
 	base.Post("/signup", s.adapter(signup.NewController(s.ct)))
@@ -60,15 +58,6 @@ func (s *Server) registerRouters() {
 	base.Post("/password/change/:token", s.adapter(changewithtoken.NewController(s.ct)))
 	base.Patch("/enable/:id", s.adapter(enable.NewController(s.ct)))
 	base.Patch("/disable/:id", s.adapter(disable.NewController(s.ct)))
-}
-
-func (s *Server) adapter(ctrl Requester) func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		defer func() {
-			s.ct.Logger.Info(c.UserContext(), fmt.Sprintf("%d %s %d - %s %s", os.Getpid(), c.GetRespHeader("X-Request-ID"), c.Response().StatusCode(), c.Method(), c.Path()))
-		}()
-		return ctrl.Handler(c)
-	}
 }
 
 // Handler returns the server handler.

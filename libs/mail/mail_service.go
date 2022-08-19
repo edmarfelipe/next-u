@@ -1,7 +1,10 @@
 package mail
 
 import (
+	"context"
+
 	"github.com/edmarfelipe/next-u/libs/logger"
+	"github.com/edmarfelipe/next-u/libs/tracer"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
@@ -18,7 +21,7 @@ type ConfigEmail struct {
 }
 
 type MailService interface {
-	Send(mailTo MailTo, subject string, content string) error
+	Send(ctx context.Context, mailTo MailTo, subject string, content string) error
 }
 
 type mailService struct {
@@ -33,7 +36,12 @@ func New(logger logger.Logger, config ConfigEmail) MailService {
 	}
 }
 
-func (m *mailService) Send(mailTo MailTo, subject string, content string) error {
+func (m *mailService) Send(ctx context.Context, mailTo MailTo, subject string, content string) error {
+	_, span := tracer.StartSpan(ctx, "MailService", "Send")
+	defer span.End()
+
+	m.logger.Info(ctx, "Sending mail to "+mailTo.Email)
+
 	from := mail.NewEmail(m.config.Title, m.config.Email)
 	to := mail.NewEmail(mailTo.Name, mailTo.Email)
 
@@ -42,8 +50,11 @@ func (m *mailService) Send(mailTo MailTo, subject string, content string) error 
 
 	_, err := client.Send(message)
 	if err != nil {
+		m.logger.Info(ctx, "Fail to send mail", err)
 		return err
 	}
+
+	m.logger.Info(ctx, "Mail sent to "+mailTo.Email)
 
 	return nil
 }

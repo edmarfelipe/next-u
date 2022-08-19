@@ -58,7 +58,7 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 		return errEmailAlreadyInUse
 	}
 
-	hashedPassword, err := usc.passwordHasher.Hash(in.Password)
+	hashedPassword, err := usc.passwordHasher.Hash(ctx, in.Password)
 	if err != nil {
 		return err
 	}

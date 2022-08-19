@@ -40,7 +40,7 @@ func NewUsecase(logger logger.Logger, userDB db.UserDB, passwordHash passwordhas
 }
 
 func (usc *usecase) Execute(ctx context.Context, in Input) error {
-	usc.logger.Info(ctx, "Updating password with email: "+in.Email)
+	usc.logger.Info(ctx, "Updating password from user "+in.Email)
 	err := validator.IsValid(in)
 	if err != nil {
 		return err
@@ -56,11 +56,11 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 		return errUserNotFound
 	}
 
-	if !usc.passwordHash.CheckHash(user.Password, in.OldPassword) {
+	if !usc.passwordHash.CheckHash(ctx, user.Password, in.OldPassword) {
 		return errPasswordNotMatch
 	}
 
-	user.Password, err = usc.passwordHash.Hash(in.NewPassword)
+	user.Password, err = usc.passwordHash.Hash(ctx, in.NewPassword)
 	if err != nil {
 		return err
 	}

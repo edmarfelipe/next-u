@@ -47,7 +47,7 @@ func NewUsecase(
 }
 
 func (usc *usecase) Execute(ctx context.Context, in Input) error {
-	usc.logger.Info(ctx, "Recovering password with email: "+in.Email)
+	usc.logger.Info(ctx, "Recovering password from user "+in.Email)
 	err := validator.IsValid(in)
 	if err != nil {
 		return err
@@ -68,12 +68,24 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 		Email: user.Email,
 	}
 
+	usc.logger.Info(ctx, "Creating password token")
 	reset := user.CreatePasswordToken()
 	err = usc.userDB.Update(ctx, *user)
 	if err != nil {
 		return err
 	}
 
+	subject := usc.config.Title + " - Reset Password"
+	usc.mailService.Send(ctx, mailTo, subject, usc.createMailContent(ctx, reset.Token))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (usc *usecase) createMailContent(ctx context.Context, token string) string {
+	usc.logger.Info(ctx, "Building mail content")
 	template := `
 		<h1>%s</h1>
 		<br/>
@@ -83,15 +95,8 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 	changePasswordUrl := strings.ReplaceAll(
 		usc.config.UrlPageChangePassword,
 		"{token}",
-		reset.Token,
+		token,
 	)
-	subject := usc.config.Title + " - Reset Password"
-	content := fmt.Sprintf(template, usc.config.Title, changePasswordUrl)
 
-	usc.mailService.Send(mailTo, subject, content)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return fmt.Sprintf(template, usc.config.Title, changePasswordUrl)
 }

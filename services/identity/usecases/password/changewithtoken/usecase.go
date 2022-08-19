@@ -69,13 +69,12 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 
 	user.MarkTokenHasDone(reset.Token)
 
-	hashedPassword, err := usc.passwordHash.Hash(in.NewPassword)
+	hashedPassword, err := usc.passwordHash.Hash(ctx, in.NewPassword)
 	if err != nil {
 		return err
 	}
 
 	user.Password = hashedPassword
-
 	err = usc.userDB.Update(ctx, *user)
 	if err != nil {
 		return err

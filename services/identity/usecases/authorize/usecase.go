@@ -61,7 +61,7 @@ func (usc *usecase) Execute(ctx context.Context, in Input) (*Output, error) {
 		return nil, errCouldNotFoundUser
 	}
 
-	if !usc.passwordHasher.CheckHash(result.Password, in.Password) {
+	if !usc.passwordHasher.CheckHash(ctx, result.Password, in.Password) {
 		usc.logger.Error(ctx, "failed to signin", "err", errInvalidPassword)
 		return nil, errInvalidPassword
 	}

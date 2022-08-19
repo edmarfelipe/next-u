@@ -49,6 +49,6 @@ func NewContainer() *Container {
 			},
 		),
 		UserDB:       db.NewUser(mongoDB, logger.With("db")),
-		PasswordHash: passwordhash.New(config.PasswordToken),
+		PasswordHash: passwordhash.New(config.PasswordToken, logger.With("password-hash")),
 	}
 }
