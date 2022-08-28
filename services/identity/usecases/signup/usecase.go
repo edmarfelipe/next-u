@@ -2,18 +2,17 @@ package signup
 
 import (
 	"context"
-	"errors"
 
 	"github.com/edmarfelipe/next-u/libs/logger"
 	"github.com/edmarfelipe/next-u/libs/passwordhash"
 	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/entity"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
 )
 
 var (
-	errEmailAlreadyInUse = errors.New("email already in use")
-	errUserAlreadyInUse  = errors.New("user already in use")
+	errEmailAlreadyInUse = errors.NewBusinessRuleError("email already in use")
 )
 
 type Usecase interface {

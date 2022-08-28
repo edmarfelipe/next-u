@@ -2,17 +2,17 @@ package change
 
 import (
 	"context"
-	"errors"
 
 	"github.com/edmarfelipe/next-u/libs/logger"
 	"github.com/edmarfelipe/next-u/libs/passwordhash"
 	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
 )
 
 var (
-	errUserNotFound     = errors.New("could not found user")
-	errPasswordNotMatch = errors.New("password does not match")
+	errUserNotFound     = errors.NewBusinessRuleError("could not found user")
+	errPasswordNotMatch = errors.NewBusinessRuleError("password does not match")
 )
 
 type Input struct {

@@ -1,9 +1,9 @@
 package validator
 
 import (
-	"errors"
 	"fmt"
 
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -22,7 +22,7 @@ func IsValid(model interface{}) error {
 		fmt.Println(err.Type())
 		fmt.Println(err.Value())
 
-		return errors.New(err.Field() + " is " + err.Tag())
+		return errors.NewInvalidInputError(err.Field() + " is " + err.Tag())
 	}
 
 	return nil

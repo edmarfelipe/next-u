@@ -2,17 +2,17 @@ package authorize
 
 import (
 	"context"
-	"errors"
 
 	"github.com/edmarfelipe/next-u/libs/logger"
 	"github.com/edmarfelipe/next-u/libs/passwordhash"
 	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
 )
 
 var (
-	errCouldNotFoundUser = errors.New("could not found user")
-	errInvalidPassword   = errors.New("invalid password")
+	errCouldNotFoundUser = errors.NewBusinessRuleError("could not found user")
+	errInvalidPassword   = errors.NewBusinessRuleError("invalid password")
 )
 
 type Usecase interface {

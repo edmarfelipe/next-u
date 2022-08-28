@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/edmarfelipe/next-u/services/identity/infra"
-	"github.com/edmarfelipe/next-u/services/identity/infra/http"
+	"github.com/edmarfelipe/next-u/services/identity/infra/http/server"
 )
 
 func main() {
 	ct := infra.NewContainer()
-	server := http.NewServer(ct)
+	server := server.New(ct)
 	server.Listen()
 }

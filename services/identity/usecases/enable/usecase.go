@@ -2,15 +2,15 @@ package enable
 
 import (
 	"context"
-	"errors"
 
 	"github.com/edmarfelipe/next-u/libs/logger"
 	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
 )
 
 var (
-	errCouldNotFoundUser = errors.New("could not found user")
+	errCouldNotFoundUser = errors.NewBusinessRuleError("could not found user")
 )
 
 type Usecase interface {

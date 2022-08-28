@@ -7,11 +7,11 @@ import (
 	"github.com/gavv/httpexpect"
 
 	"github.com/edmarfelipe/next-u/services/identity/infra"
-	httpServer "github.com/edmarfelipe/next-u/services/identity/infra/http"
+	"github.com/edmarfelipe/next-u/services/identity/infra/http/server"
 )
 
 func NewHTTPTester(t *testing.T, ct *infra.Container) *httpexpect.Expect {
-	app := httpServer.NewServer(ct)
+	app := server.New(ct)
 
 	return httpexpect.WithConfig(httpexpect.Config{
 		Client: &http.Client{

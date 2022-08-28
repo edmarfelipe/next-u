@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/edmarfelipe/next-u/services/identity/infra"
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
+	"github.com/edmarfelipe/next-u/services/identity/infra/http/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -20,6 +22,10 @@ type Controller struct {
 	usecase Usecase
 }
 
+var (
+	userNotAuthorized = errors.NewNotAuthorizedError("user not authorized")
+)
+
 func (ctrl Controller) Handler(c *fiber.Ctx) error {
 	var in Input
 	err := c.BodyParser(&in)
@@ -29,11 +35,11 @@ func (ctrl Controller) Handler(c *fiber.Ctx) error {
 
 	output, err := ctrl.usecase.Execute(c.UserContext(), in)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return response.SendError(c, err)
 	}
 
 	if output == nil {
-		return c.SendStatus(fiber.StatusUnauthorized)
+		return response.SendError(c, userNotAuthorized)
 	}
 
 	claims := jwt.MapClaims{
@@ -46,7 +52,7 @@ func (ctrl Controller) Handler(c *fiber.Ctx) error {
 
 	t, err := token.SignedString([]byte(ctrl.config.Server.JWTToken))
 	if err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
+		return response.SendError(c, userNotAuthorized)
 	}
 
 	return c.JSON(fiber.Map{"token": t})

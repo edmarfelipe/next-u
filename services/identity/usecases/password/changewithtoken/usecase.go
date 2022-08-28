@@ -2,18 +2,18 @@ package changewithtoken
 
 import (
 	"context"
-	"errors"
 
 	"github.com/edmarfelipe/next-u/libs/logger"
 	"github.com/edmarfelipe/next-u/libs/passwordhash"
 	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
 )
 
 var (
-	errUserNotFoundToken = errors.New("could not found user with this token")
-	errTokenNotFound     = errors.New("token not found")
-	errTokenExpired      = errors.New("token is expired")
+	errUserNotFoundToken = errors.NewBusinessRuleError("could not found user with this token")
+	errTokenNotFound     = errors.NewBusinessRuleError("token not found")
+	errTokenExpired      = errors.NewBusinessRuleError("token is expired")
 )
 
 type Input struct {

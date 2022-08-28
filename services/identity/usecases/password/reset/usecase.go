@@ -2,7 +2,6 @@ package reset
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -11,10 +10,11 @@ import (
 	"github.com/edmarfelipe/next-u/libs/validator"
 	"github.com/edmarfelipe/next-u/services/identity/infra"
 	"github.com/edmarfelipe/next-u/services/identity/infra/db"
+	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
 )
 
 var (
-	errUserNotFound = errors.New("could not found user")
+	errUserNotFound = errors.NewBusinessRuleError("could not found user")
 )
 
 type Usecase interface {

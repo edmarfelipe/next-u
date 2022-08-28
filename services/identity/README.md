@@ -29,6 +29,14 @@ curl --request POST \
 }'
 ```
 
+Example response:
+```json
+{
+	"name": "Jon Snow",
+	"password": "1234",
+	"email": "jon.snow3@mail.com"
+}
+```
 
 ### Authorize
 
@@ -57,6 +65,13 @@ curl --request POST \
 }'
 ```
 
+Example response:
+```json
+{
+	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNjYxOTA4MTQ0LCJuYW1lIjoiSm9uIFNub3cifQ.T0p2bUJaz840-A7yygRH8tjlvb9r7jmbWRVgASQwBWw"
+}
+```
+
 ### Change Password
 
 ```js
@@ -83,6 +98,7 @@ curl --request POST \
 	"newPassword": "newpass"
 }'
 ```
+
 
 ### Recovery Password
 
@@ -134,8 +150,8 @@ Example:
 curl --request PATCH \
   --url http://127.0.0.1:3000/identity/v1/enable/62fae8ed7463e5388a23bf21 \
   --header 'Authorization: Bearer ...'
-
 ```
+
 
 ### Disable User
 
