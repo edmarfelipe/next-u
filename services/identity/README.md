@@ -2,6 +2,32 @@
 
 Authentication, Authorization and User Registration
 
+## Overview
+
+```mermaid
+C4Container
+  title Authentication, Authorization and User Registration
+
+  Person(customer, Customer, "A student of the university")
+  System_Ext(email_system, "E-Mail System", "SendGrid API")
+
+  Container_Boundary("Identity") {
+      Container(backend_api, "API Application", "Java, Docker Container", "Provides user registration and authentication via API", "Golang")
+      ContainerDb(database, "Database", "MongoDB", "Stores user registration information.",)
+  }
+
+  Rel(customer, backend_api, "Uses", "sync, JSON/HTTPS")
+  Rel_Back(database, backend_api, "Reads from and writes to", "sync, TCP/IP")
+  UpdateRelStyle(database, backend_api, $offsetX="-50", $offsetY="20")
+
+  Rel(email_system, customer, "Sends e-mails to")
+  UpdateRelStyle(email_system, customer, $offsetX="-40", $offsetY="20")
+
+  Rel(backend_api, email_system, "Sends e-mails using", "sync, JSON/HTTPS")
+```
+
+## REST API
+
 ### Create User
 
 ```js

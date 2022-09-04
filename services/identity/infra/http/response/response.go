@@ -34,6 +34,9 @@ func SendError(c *fiber.Ctx, err error) error {
 	case errors.NotAuthorizedError:
 		message = e.Error()
 		statusCode = 401
+	case errors.InsufficientPermissionError:
+		message = e.Error()
+		statusCode = 403
 	case errors.InternalError:
 	default:
 		statusCode = 500
