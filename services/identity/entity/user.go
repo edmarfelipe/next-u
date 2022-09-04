@@ -7,12 +7,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+const (
+	RoleAdmin   = "admin"
+	RoleStudent = "student"
+	RoleTeacher = "teacher"
+)
+
 type User struct {
 	ID             primitive.ObjectID `bson:"_id"`
 	Name           string             `bson:"name"`
 	Password       string             `bson:"password"`
 	Email          string             `bson:"email"`
 	Active         bool               `bson:"active"`
+	Role           string             `bson:"role"`
 	PasswordResets []PasswordReset    `bson:"passwordResets"`
 }
 
@@ -28,6 +35,7 @@ func MakeUser(name string, email string, password string) User {
 		Name:     name,
 		Email:    email,
 		Password: password,
+		Role:     RoleStudent,
 		Active:   true,
 	}
 }

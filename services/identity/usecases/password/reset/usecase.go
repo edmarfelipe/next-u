@@ -53,7 +53,7 @@ func (usc *usecase) Execute(ctx context.Context, in Input) error {
 		return err
 	}
 
-	user, err := usc.userDB.FindByEmail(ctx, in.Email)
+	user, err := usc.userDB.FindByEmail(ctx, in.Email, false)
 	if err != nil {
 		return err
 	}

@@ -40,14 +40,14 @@ type Input struct {
 }
 
 func (usc *usecase) Execute(ctx context.Context, in Input) error {
-	usc.logger.Info(ctx, "signing up with user: "+in.Email)
+	usc.logger.Info(ctx, "creating user with email : "+in.Email)
 
 	err := validator.IsValid(in)
 	if err != nil {
 		return err
 	}
 
-	existingUser, err := usc.userDB.FindByEmail(ctx, in.Email)
+	existingUser, err := usc.userDB.FindByEmail(ctx, in.Email, false)
 	if err != nil {
 		return err
 	}

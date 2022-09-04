@@ -189,3 +189,36 @@ Example response:
   }
 ]
 ```
+
+### Change user role
+
+Supported attributes:
+
+| Attribute                | Type     | Required  | Description     |
+|:-------------------------|:---------|:----------|:----------------|
+| `role`                   | string   | Yes       |                 |
+
+
+Example:
+
+```js
+curl --request GET \
+  --url http://127.0.0.1:3000/identity/v1/change-role/6313f8b2602913651f9bc8a8 \
+  --header 'Authorization: Bearer ...'
+  --header 'Content-Type: application/json' \
+  --data '{
+	"role": "admin"
+}'
+```
+
+Example response:
+
+```json
+{
+	"id": "6313f8b2602913651f9bc8a8",
+	"name": "Jon Snow",
+	"email": "jon.snow4@mail.com",
+	"role": "admin",
+	"active": true
+}
+```

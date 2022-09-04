@@ -6,6 +6,7 @@ import (
 
 	"github.com/edmarfelipe/next-u/services/identity/infra"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/authorize"
+	"github.com/edmarfelipe/next-u/services/identity/usecases/changerole"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/disable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/enable"
 	"github.com/edmarfelipe/next-u/services/identity/usecases/find"
@@ -55,6 +56,7 @@ func (s *server) registerRouters() {
 	base.Post("/password/change/:token", s.adapter(changewithtoken.NewController(s.ct)))
 	base.Patch("/enable/:id", s.adapter(enable.NewController(s.ct)))
 	base.Patch("/disable/:id", s.adapter(disable.NewController(s.ct)))
+	base.Post("/change-role/:id", s.adapter(changerole.NewController(s.ct)))
 }
 
 func (s *server) adapter(ctrl Requester) func(c *fiber.Ctx) error {

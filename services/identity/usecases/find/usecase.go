@@ -12,6 +12,7 @@ type Output struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	Email  string `json:"email"`
+	Role   string `json:"role"`
 	Active bool   `json:"active"`
 }
 
@@ -52,6 +53,7 @@ func (usc usecase) Execute(ctx context.Context, in Input) ([]Output, error) {
 			Name:   user.Name,
 			Email:  user.Email,
 			Active: user.Active,
+			Role:   user.Role,
 		})
 	}
 

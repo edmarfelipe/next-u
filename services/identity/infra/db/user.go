@@ -16,7 +16,7 @@ type UserDB interface {
 	Update(ctx context.Context, model entity.User) error
 	FindAll(ctx context.Context) ([]entity.User, error)
 	FindOne(ctx context.Context, id string) (*entity.User, error)
-	FindByEmail(ctx context.Context, email string) (*entity.User, error)
+	FindByEmail(ctx context.Context, email string, onlyActive bool) (*entity.User, error)
 	FindByTokenNotDone(ctx context.Context, token string) (*entity.User, error)
 }
 
@@ -59,6 +59,7 @@ func (rep *userDB) Update(ctx context.Context, model entity.User) error {
 			"email":          model.Email,
 			"password":       model.Password,
 			"active":         model.Active,
+			"role":           model.Role,
 			"passwordResets": model.PasswordResets,
 		},
 	}
@@ -114,11 +115,17 @@ func (rep *userDB) FindOne(ctx context.Context, id string) (*entity.User, error)
 	return &result, nil
 }
 
-func (rep *userDB) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (rep *userDB) FindByEmail(ctx context.Context, email string, onlyActive bool) (*entity.User, error) {
 	rep.logger.Info(ctx, "Finding user by email "+email)
 
+	filter := bson.M{"email": email}
+
+	if onlyActive {
+		filter = bson.M{"email": email, "active": onlyActive}
+	}
+
 	query := rep.coll().
-		Find(ctx, bson.M{"email": email})
+		Find(ctx, filter)
 
 	var result entity.User
 	err := query.One(&result)
