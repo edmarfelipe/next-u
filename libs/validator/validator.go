@@ -3,7 +3,7 @@ package validator
 import (
 	"fmt"
 
-	"github.com/edmarfelipe/next-u/services/identity/infra/errors"
+	"github.com/edmarfelipe/next-u/identity/infra/errors"
 	"github.com/go-playground/validator/v10"
 )
 

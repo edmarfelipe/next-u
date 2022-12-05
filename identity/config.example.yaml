@@ -1,0 +1,16 @@
+title: Next University
+email: hello@next-u.com
+token: password-token
+urlPageChangePassword: https://next-u.com/change-password/{token}
+
+server:
+  host: 127.0.0.1
+  port: 8080
+  jwtToken: secret
+
+database:
+  name: db-identity
+  uri: mongodb://localhost:27017
+
+sendgrid:
+  apiKey: sendgrid-api-key

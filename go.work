@@ -6,5 +6,5 @@ use (
 	./libs/passwordhash
 	./libs/tracer
 	./libs/validator
-	./services/identity
+	./identity
 )
